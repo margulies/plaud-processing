@@ -1,0 +1,14 @@
+.env
+node_modules/
+.DS_Store
+*.log
+__pycache__/
+# Never commit recordings or anything made from them.
+*.mp3
+*.m4a
+*.wav
+*.ogg
+*.opus
+*.flac
+.processing/
+.transcripts/

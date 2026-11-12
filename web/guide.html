@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Guide · Plaud Processing</title>
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="top">
+      <a class="brand" href="./#/"><span class="dot"></span>Plaud Processing</a>
+      <nav>
+        <a href="./#/">Recordings</a>
+        <a href="./#/settings">Settings</a>
+        <a href="guide.html" class="on">Guide</a>
+      </nav>
+    </header>
+    <main class="page guide">
+      <h1>Guide</h1>
+      <p>Plaud Processing takes the recordings from your Plaud, transcribes them on this Mac, has Claude write notes from each transcript, and shows them all here. This page explains what happens and what you can do.</p>
+
+      <ul class="toc">
+        <li><a href="#flow">What happens to a recording</a></li>
+        <li><a href="#list">The list and search</a></li>
+        <li><a href="#notes">Notes</a></li>
+        <li><a href="#transcript">The transcript</a></li>
+        <li><a href="#ask">Ask Claude</a></li>
+        <li><a href="#again">Transcribe again</a></li>
+        <li><a href="#private">Private recordings</a></li>
+        <li><a href="#settings">Settings</a></li>
+        <li><a href="#files">Your files, on any device</a></li>
+        <li><a href="#phone">This page on your phone</a></li>
+        <li><a href="#privacy">What goes where</a></li>
+        <li><a href="#trouble">When something goes wrong</a></li>
+      </ul>
+
+      <h2 id="flow">What happens to a recording</h2>
+      <div class="flow">
+        <div><strong>You record</strong> on the Plaud. The Plaud app uploads it to Plaud's cloud, as always.</div>
+        <div class="arrow">↓ within five minutes</div>
+        <div><strong>The sync</strong> downloads the audio into your recordings folder (usually in Dropbox), named with the date, time and title.</div>
+        <div class="arrow">↓ as soon as the file is complete</div>
+        <div><strong>Transcription</strong> on this Mac: Whisper or Parakeet writes the words, a second model works out who spoke when. Nothing leaves the Mac. Roughly 10 to 30 minutes per hour of audio.</div>
+        <div class="arrow">↓</div>
+        <div><strong>Notes</strong>: Claude reads the transcript (text only) and writes a summary, tasks, decisions, dates and more. Skipped for private recordings.</div>
+        <div class="arrow">↓</div>
+        <div><strong>Here</strong>, and as files next to the audio in your folder, so you can read them anywhere.</div>
+      </div>
+      <p>You can also drop any audio file (.m4a, .mp3, .wav, …) into the recordings folder, from this Mac or from Dropbox on another device. It goes through the same steps.</p>
+      <p>While something is being worked on, the top right of the page says so: <span class="badge accent">Transcribing</span> and <span class="badge accent">Claude</span>, with how many are waiting. One recording is transcribed at a time.</p>
+
+      <h2 id="list">The list and search</h2>
+      <p>Recordings are listed newest first, by month. Each shows its title, when it was recorded (in your time zone), its state, and the start of its summary.</p>
+      <table>
+        <tr><td><span class="badge">Not transcribed</span></td><td>It waits for you: it is older than <em>Count as new from</em> in Settings, or automatic transcription is off. Open it and press <strong>Transcribe</strong>, or use <strong>Transcribe N waiting</strong> above the list.</td></tr>
+        <tr><td><span class="badge accent">Waiting to transcribe</span></td><td>In the queue.</td></tr>
+        <tr><td><span class="badge bad">Transcription failed</span></td><td>Open it to see why, and try again.</td></tr>
+        <tr><td><span class="badge good">Meeting</span></td><td>It has notes, read as this kind of recording.</td></tr>
+        <tr><td><span class="badge">🔒 Private</span></td><td>Never sent to Claude.</td></tr>
+      </table>
+      <p><strong>Search</strong> looks in every title, the notes and every transcript, for all the words you type. Matching lines from the transcript show under each result. The ↻ button looks in the folder now instead of waiting the usual 20 seconds.</p>
+
+      <h2 id="notes">Notes</h2>
+      <p>What Claude wrote from the transcript: who was there, a summary, the main notes, then tasks for you and for others, decisions, key points, dates (set, or only floated), quotes, ideas, follow-ups and open questions. Sections with nothing in them are left out. Every <button class="ts" type="button">12:04</button> plays the recording from that moment.</p>
+      <p>Claude reads a recording as one of four kinds, and writes the notes to suit it:</p>
+      <table>
+        <tr><th>Kind</th><th>For</th></tr>
+        <tr><td>Meeting</td><td>People discussing, deciding, planning: tasks with owners and dates, decisions, points by topic.</td></tr>
+        <tr><td>Voice memo</td><td>You thinking aloud or dictating: your words tidied into readable text, your tasks, ideas.</td></tr>
+        <tr><td>Talk or lecture</td><td>One speaker presenting: notes following the argument, key points, quotes, questions from the audience.</td></tr>
+        <tr><td>Interview or conversation</td><td>A call or interview: what each person said that matters, quotes, who promised what.</td></tr>
+      </table>
+      <p>Normally Claude decides. At the bottom of the notes, <strong>Write the notes again</strong> lets you choose the kind, and add a note for Claude about this recording ("I'm the interviewer", "Focus on the budget", "The second speaker is our client, Ana"). Your note wins over everything else.</p>
+      <p>The notes are also saved as <code>&lt;name&gt;.notes.md</code> next to the audio. <strong>Download → Notes</strong> gives you that file.</p>
+
+      <h2 id="transcript">The transcript</h2>
+      <ul>
+        <li><strong>Play from any line</strong>: click its time. While the audio plays, the current line is highlighted, and with <em>Follow the audio</em> on, the page scrolls along.</li>
+        <li><strong>Find</strong> words: matching lines are highlighted; press Enter to go from one to the next.</li>
+        <li><strong>Speakers</strong>: the transcriber labels them <em>Speaker 1</em>, <em>Speaker 2</em>… Type their names and press <strong>Save names</strong>. Names Claude worked out from the conversation are suggested; <strong>Keep the suggested names</strong> accepts them. Names appear everywhere: here, in the notes, and in the files in your folder. They also help the next transcription spell them right.</li>
+        <li><strong>Correct a line</strong>: the ✎ at the end of a line lets you fix its words, or say it was someone else speaking.</li>
+      </ul>
+      <p>The speaker labels can be wrong at the edges of turns, especially when people talk over each other, and words can be misheard. For big problems, transcribe again (below).</p>
+
+      <h2 id="ask">Ask Claude</h2>
+      <p>Ask Claude anything about the recording, or have it make something from it. Pick one of the ready-made requests to start from, change it if you like, and press <strong>Ask Claude</strong> (or ⌘↩):</p>
+      <ul>
+        <li><strong>Clean transcript</strong>: readable text without the ums and false starts.</li>
+        <li><strong>Minutes</strong>, a <strong>recap email</strong> to the others, a <strong>blog post</strong>.</li>
+        <li><strong>Key quotes</strong>, every <strong>question and answer</strong>, <strong>study notes</strong> with review questions.</li>
+        <li><strong>Translate</strong> it into English.</li>
+      </ul>
+      <p>Or a question of your own: "What did we agree about the budget?", "List everything Sam promised", "What were the three arguments against?". Answers are kept with the recording, newest first, to copy, download or delete.</p>
+
+      <h2 id="again">Transcribe again</h2>
+      <p>When a transcript isn't good enough, transcribe it again with different settings:</p>
+      <table>
+        <tr><th>Model</th><th></th></tr>
+        <tr><td>Whisper turbo</td><td>Fast. The usual choice.</td></tr>
+        <tr><td>Whisper large</td><td>Gets names and specialist words right more often, especially with a glossary. About twice as slow.</td></tr>
+        <tr><td>Parakeet</td><td>Often the most accurate on meetings, and fast. Detects the language itself (English and 24 other European languages). Can't be told words to expect. Never gets stuck repeating itself.</td></tr>
+      </table>
+      <ul>
+        <li><strong>Speakers</strong>: if it merged two people or split one, give the exact number, or a range when you're not sure (a range does better than a wrong guess).</li>
+        <li><strong>Language</strong>: "en", "fr", "de"… if Whisper guessed wrong.</li>
+        <li><strong>Words to expect</strong>: names and terms for this recording, on top of your glossary and the speakers' names (Whisper only).</li>
+        <li><strong>Then write the notes again</strong>: so the notes follow the new transcript.</li>
+      </ul>
+      <p>A new transcript may number the speakers differently, so check the names on the Transcript tab afterwards.</p>
+      <p>The old transcript is never thrown away. It appears under <strong>Earlier transcripts</strong>, and <strong>Use this one</strong> puts it back (keeping the newer one in its place in the list).</p>
+
+      <h2 id="private">Private recordings</h2>
+      <p><strong>🔒 Make private</strong> on a recording's page moves it, with its transcript, into the <code>Private</code> folder inside your recordings folder. Private recordings are transcribed on this Mac like any other, and are <strong>never sent to Claude</strong>: no notes, no Ask Claude. <strong>Not private</strong> moves it back. You can also move files into or out of <code>Private</code> yourself, in Finder.</p>
+      <p>If a recording already had notes before you made it private, they stay; delete them from the folder if you want them gone.</p>
+
+      <h2 id="settings">Settings</h2>
+      <ul>
+        <li><strong>How things stand</strong>: whether the Plaud sync, transcription and Claude are working, and what to do if not.</li>
+        <li><strong>Your name</strong> and <strong>about you</strong>: so the notes know which tasks are yours and what matters to you.</li>
+        <li><strong>Doing things on their own</strong>: transcribe new recordings automatically, and then have Claude write notes. Turn the second off to choose recording by recording what Claude sees.</li>
+        <li><strong>Count as new from</strong>: recordings older than this wait for you to start them, so a folder full of old audio doesn't queue days of work.</li>
+        <li><strong>Model</strong> and <strong>language</strong> for new recordings.</li>
+        <li><strong>Glossary</strong>: names, companies, jargon and acronyms you use, so Whisper spells them right.</li>
+        <li><strong>Claude's model</strong>: <code>sonnet</code> is a good default; <code>opus</code> is more capable, slower and costs more; <code>haiku</code> is fastest and cheapest.</li>
+        <li><strong>Your rules</strong>: how Claude should write every recording's notes, in your own words. "Always list numbers and amounts." "Write in British English." "Leave out small talk."</li>
+      </ul>
+      <p>Settings are saved in your recordings folder (<code>.processing/settings.json</code>), so they move with it to a new Mac.</p>
+
+      <h2 id="files">Your files, on any device</h2>
+      <p>Everything is in your recordings folder, next to each audio file:</p>
+      <pre><code>2026-10-08_2132 Team sync [ab12cd34].m4a              the audio
+2026-10-08_2132 Team sync [ab12cd34].transcript.txt   the transcript, with names
+2026-10-08_2132 Team sync [ab12cd34].notes.md         the notes
+Private/                                             private recordings</code></pre>
+      <p>If the folder is in Dropbox, open it in the Dropbox app on your phone or on another computer to read them. The time in the file name is in UTC (as Plaud keeps it); this page shows it in your own time zone.</p>
+
+      <h2 id="phone">This page on your phone</h2>
+      <p>The page runs on this Mac and, as installed, only this Mac can open it. To open it on your phone or laptop from anywhere, install <a href="https://tailscale.com" target="_blank" rel="noopener">Tailscale</a> on both, signed in to the same account, then run <code>tailscale serve --bg 8787</code> on the Mac once. It gives you an address ending in <code>.ts.net</code> that works on your own devices only. Details in <code>docs/ACCESS.md</code> in the project folder.</p>
+
+      <h2 id="privacy">What goes where</h2>
+      <ul>
+        <li><strong>Audio</strong>: Plaud's cloud (as always), this Mac, and your Dropbox. Nowhere else.</li>
+        <li><strong>Transcription</strong>: on this Mac only.</li>
+        <li><strong>Transcript text</strong>: sent to Anthropic's Claude to write notes or answer your requests, through Claude Code and the account it's signed in with. Never for private recordings. Claude runs with no tools: it can only answer, not read your files or go online.</li>
+      </ul>
+      <p>Please tell people when you record them. Details in <code>docs/PRIVACY.md</code>.</p>
+
+      <h2 id="trouble">When something goes wrong</h2>
+      <p>A recording that failed shows what went wrong, with <strong>Try again</strong>. For anything else, in Terminal, in the project folder:</p>
+      <pre><code>npm run doctor     # what's missing, and the fix for each
+npm run status     # is everything running; the last lines of the logs
+npm run restart    # restart the server</code></pre>
+      <p>Logs are in <code>~/Library/Logs/plaud-processing/</code>. The full list of problems and fixes is in <code>docs/TROUBLESHOOTING.md</code>.</p>
+    </main>
+  </body>
+</html>

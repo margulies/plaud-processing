@@ -1,0 +1,21 @@
+{
+  "name": "plaud-processing",
+  "version": "0.1.0",
+  "description": "Plaud recordings, transcribed on your own Mac: sync from the Plaud cloud into Dropbox, local speech-to-text with speaker labels, notes from Claude, and a web page to read, search and work with them.",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "setup": "node scripts/cli.mjs setup",
+    "start": "node server/main.mjs",
+    "doctor": "node scripts/cli.mjs doctor",
+    "status": "node scripts/cli.mjs status",
+    "restart": "node scripts/cli.mjs restart",
+    "uninstall": "node scripts/cli.mjs uninstall",
+    "sync": "node scripts/cli.mjs sync",
+    "test": "node --test test/ && python3 transcribe/test_transcribe.py"
+  }
+}
