@@ -21,6 +21,10 @@ To decide recording by recording instead, switch off **Then have Claude write th
 
 Without Claude Code installed, nothing is ever sent anywhere.
 
+## Claude through MCP
+
+If you connect the Claude desktop app or Claude Code to your recordings ([MCP.md](MCP.md)), Claude can read transcripts and notes in a conversation when you ask it to, and that text goes to Anthropic as part of the conversation. It can't read private recordings (it sees only their title and date), can't delete anything, and can't make a recording private or not. `npm run mcp:uninstall` takes the access away.
+
 ## The people you record
 
 Recording laws differ between countries and states, and many people expect to be told. Tell people when you're recording, and handle the transcripts as you would any notes about them.

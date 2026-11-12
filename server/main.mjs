@@ -160,6 +160,7 @@ function detail(rec) {
   return {
     ...summary(rec),
     nameTitle: rec.nameTitle,
+    paths: { audio: rec.audio, transcript: rec.hasTranscript ? rec.transcriptPath : null, notes: fs.existsSync(rec.notesPath) ? rec.notesPath : null },
     customTitle: state.title,
     speakers: state.speakers,
     suggested: state.suggested,
@@ -275,6 +276,18 @@ async function api(req, res, url) {
         processor.process(rec.id, String(body.request ?? ''))
         return send(res, 200, { ok: true })
       case 'outputs':
+        // A write-up made elsewhere (Claude through the MCP, say), kept with the recording like an answer from Ask Claude.
+        if (m === 'POST') {
+          if (rec.private) throw new HttpError(400, 'Private recordings are never sent to Claude.')
+          const text = String(body.text ?? '').trim()
+          if (!text) throw new HttpError(400, 'Nothing to save.')
+          const out = { id: Date.now().toString(36), request: String(body.request ?? 'Saved from Claude').trim().slice(0, 4000) || 'Saved from Claude', text: text.slice(0, 200_000), at: new Date().toISOString(), model: typeof body.by === 'string' ? body.by.slice(0, 60) : null }
+          library.patchState(rec, (st) => {
+            st.outputs = [out, ...(st.outputs ?? [])].slice(0, 50)
+          })
+          bump()
+          return send(res, 200, { ok: true, id: out.id })
+        }
         if (m !== 'DELETE') break
         library.patchState(rec, (st) => {
           st.outputs = (st.outputs ?? []).filter((o) => o.id !== c)

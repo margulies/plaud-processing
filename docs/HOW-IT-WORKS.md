@@ -9,6 +9,7 @@ Four small pieces, each doing one thing, joined by files in one folder.
 | Transcriber | `transcribe/transcribe.py` | started by the server, one recording at a time |
 | Notes | `claude -p`, started by the server | after each transcript |
 | Web page | `web/` | in your browser |
+| MCP server | `mcp/server.mjs` | started by the Claude app or Claude Code, when connected ([MCP.md](MCP.md)) |
 
 Nothing here needs a database or npm packages. The folder is the database.
 

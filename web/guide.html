@@ -33,6 +33,7 @@
         <li><a href="#files">Your files, on any device</a></li>
         <li><a href="#phone">This page on your phone</a></li>
         <li><a href="#privacy">What goes where</a></li>
+        <li><a href="#mcp">Claude, in the Claude app</a></li>
         <li><a href="#trouble">When something goes wrong</a></li>
       </ul>
 
@@ -146,6 +147,17 @@ Private/                                             private recordings</code></
         <li><strong>Transcript text</strong>: sent to Anthropic's Claude to write notes or answer your requests, through Claude Code and the account it's signed in with. Never for private recordings. Claude runs with no tools: it can only answer, not read your files or go online.</li>
       </ul>
       <p>Please tell people when you record them. Details in <code>docs/PRIVACY.md</code>.</p>
+
+      <h2 id="mcp">Claude, in the Claude app</h2>
+      <p>You can also ask the Claude desktop app, or Claude Code, about your recordings, across all of them at once:</p>
+      <ul>
+        <li>"What did I record this week?"</li>
+        <li>"What did Sam say about the deadline in Tuesday's call? Quote it, with the time."</li>
+        <li>"List every task that's mine from this week's meetings."</li>
+        <li>"Speaker 2 in the interview is Priya. Name her and write the notes again as an interview."</li>
+        <li>"Write minutes for this morning's meeting and save them with the recording." (They appear here, under Ask Claude.)</li>
+      </ul>
+      <p>To set it up, in Terminal, in the project folder: <code>npm run mcp:install</code>, then quit the Claude app (⌘Q) and open it again. Claude reaches only your recordings, never private ones, and can't delete anything; what it changes shows here, and can be changed back. <code>npm run mcp:uninstall</code> takes it away. Details in <code>docs/MCP.md</code>.</p>
 
       <h2 id="trouble">When something goes wrong</h2>
       <p>A recording that failed shows what went wrong, with <strong>Try again</strong>. For anything else, in Terminal, in the project folder:</p>

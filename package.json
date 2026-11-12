@@ -16,6 +16,9 @@
     "restart": "node scripts/cli.mjs restart",
     "uninstall": "node scripts/cli.mjs uninstall",
     "sync": "node scripts/cli.mjs sync",
+    "mcp": "node mcp/server.mjs",
+    "mcp:install": "node scripts/cli.mjs mcp-install",
+    "mcp:uninstall": "node scripts/cli.mjs mcp-uninstall",
     "test": "node --test test/ && python3 transcribe/test_transcribe.py"
   }
 }

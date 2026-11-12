@@ -75,6 +75,10 @@ Setup installs two launchd agents (macOS's way of running things in the backgrou
 
 Their definitions are in `~/Library/LaunchAgents/`, their logs in `~/Library/Logs/plaud-processing/`. `npm run uninstall` removes them.
 
+### Claude, with your recordings (optional)
+
+Last, setup offers to let Claude work with your recordings: the Claude desktop app and Claude Code then get tools to list, search and read them, and to rename, correct, transcribe again or rewrite notes when you ask. Private recordings stay out of reach. It runs `npm run mcp:install`, which you can also run any time. After it, quit the Claude app (⌘Q) and open it again. Details: [MCP.md](MCP.md).
+
 At the end, setup prints a checklist (the same as `npm run doctor`) and the address of the page.
 
 ## 4. Open the page
@@ -112,6 +116,7 @@ npm run restart
 
 ```bash
 cd ~/plaud-processing
+npm run mcp:uninstall      # if you connected Claude
 npm run uninstall          # stops and removes the background jobs
 ```
 

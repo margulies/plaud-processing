@@ -3,7 +3,7 @@ import { execFileSync, spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import readline from 'node:readline/promises'
+import readline from 'node:readline'
 import { loadConfig, readDotEnv, REPO, which } from '../server/config.mjs'
 
 /**
@@ -13,6 +13,8 @@ import { loadConfig, readDotEnv, REPO, which } from '../server/config.mjs'
  * npm run restart     restart the server (after an update, say)
  * npm run uninstall   stop and remove the background jobs (your recordings stay)
  * npm run sync        one Plaud sync now, in this window
+ * npm run mcp:install    let Claude (Claude Code, the Claude desktop app) work with your recordings
+ * npm run mcp:uninstall  take that away again
  */
 
 const HOME = os.homedir()
@@ -23,6 +25,9 @@ const SYNC = 'local.plaud-processing.sync'
 const PLAUD_DIR = path.join(HOME, '.plaud')
 const SYNC_SCRIPT = path.join(REPO, 'sync', 'plaud-sync.mjs')
 const HF_URL = 'https://huggingface.co/pyannote/speaker-diarization-community-1'
+const MCP_NAME = 'plaud-recordings'
+const MCP_SCRIPT = path.join(REPO, 'mcp', 'server.mjs')
+const desktopConfig = () => process.env.CLAUDE_DESKTOP_CONFIG || path.join(HOME, 'Library', 'Application Support', 'Claude', 'claude_desktop_config.json')
 const domain = () => `gui/${os.userInfo().uid}`
 const plistPath = (label) => path.join(AGENTS, `${label}.plist`)
 
@@ -31,6 +36,31 @@ const red = (s) => `\x1b[31m${s}\x1b[0m`
 const yellow = (s) => `\x1b[33m${s}\x1b[0m`
 const bold = (s) => `\x1b[1m${s}\x1b[0m`
 const dim = (s) => `\x1b[2m${s}\x1b[0m`
+
+/**
+ * Questions in the terminal. Lines are queued as they come, so answers piped
+ * in (or typed ahead) are never lost between one question and the next.
+ */
+function prompter() {
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: !!process.stdin.isTTY })
+  const lines = []
+  const waiting = []
+  let closed = false
+  rl.on('line', (l) => (waiting.length ? waiting.shift()(l) : lines.push(l)))
+  rl.on('close', () => {
+    closed = true
+    while (waiting.length) waiting.shift()('')
+  })
+  return {
+    question(q) {
+      process.stdout.write(q)
+      if (lines.length) return Promise.resolve(lines.shift())
+      if (closed) return Promise.resolve('')
+      return new Promise((resolve) => waiting.push(resolve))
+    },
+    close: () => rl.close(),
+  }
+}
 
 // ---------- launchd ----------
 
@@ -88,16 +118,102 @@ function agentState(label) {
   return /state = (\w+)/.exec(launchctl(['print', `${domain()}/${label}`]))?.[1] ?? 'not loaded'
 }
 
+/** Node by its stable link (/opt/homebrew/bin/node), not the versioned folder it resolves to, so a Node upgrade doesn't break the agents or the MCP. */
+function nodeBin() {
+  return which('node') ?? process.execPath
+}
+
 /** PATH for the agents: where node, uv, ffmpeg and claude live on this Mac, then the usual places. */
 function agentPath() {
-  const dirs = [path.dirname(process.execPath), ...['uv', 'ffmpeg', 'claude', 'plaud'].map((b) => which(b)).filter(Boolean).map((p) => path.dirname(p)), '/opt/homebrew/bin', '/usr/local/bin', path.join(HOME, '.local', 'bin'), '/usr/bin', '/bin', '/usr/sbin', '/sbin']
+  const dirs = [path.dirname(nodeBin()), ...['uv', 'ffmpeg', 'claude', 'plaud'].map((b) => which(b)).filter(Boolean).map((p) => path.dirname(p)), '/opt/homebrew/bin', '/usr/local/bin', path.join(HOME, '.local', 'bin'), '/usr/bin', '/bin', '/usr/sbin', '/sbin']
   return [...new Set(dirs)].join(':')
 }
 
 function installAgents(cfg) {
   const env = { PATH: agentPath(), HOME }
-  load(SERVER, plist({ label: SERVER, args: [process.execPath, path.join(REPO, 'server', 'main.mjs')], env, log: path.join(LOGS, 'server.log'), keepAlive: true }))
-  load(SYNC, plist({ label: SYNC, args: [process.execPath, SYNC_SCRIPT], env: { ...env, PLAUD_SYNC_DEST: cfg.recordingsDir }, log: path.join(LOGS, 'sync.log'), interval: 300 }))
+  load(SERVER, plist({ label: SERVER, args: [nodeBin(), path.join(REPO, 'server', 'main.mjs')], env, log: path.join(LOGS, 'server.log'), keepAlive: true }))
+  load(SYNC, plist({ label: SYNC, args: [nodeBin(), SYNC_SCRIPT], env: { ...env, PLAUD_SYNC_DEST: cfg.recordingsDir }, log: path.join(LOGS, 'sync.log'), interval: 300 }))
+}
+
+// ---------- the MCP server, for Claude ----------
+
+/**
+ * Adds (entry) or removes (null) our server in the Claude desktop app's
+ * config, keeping everything else in it, with a backup of the file first.
+ * Exported for the tests.
+ */
+export function editDesktopConfig(file, entry) {
+  let config = {}
+  if (fs.existsSync(file)) {
+    const text = fs.readFileSync(file, 'utf8')
+    try {
+      config = text.trim() ? JSON.parse(text) : {}
+    } catch {
+      throw new Error(`${file} isn't valid JSON, so it was left alone. Fix it, or add the server by hand (docs/MCP.md).`)
+    }
+    fs.copyFileSync(file, `${file}.before-plaud-processing`)
+  } else if (!entry) return false
+  config.mcpServers ??= {}
+  if (entry) config.mcpServers[MCP_NAME] = entry
+  else if (config.mcpServers[MCP_NAME]) delete config.mcpServers[MCP_NAME]
+  else return false
+  fs.mkdirSync(path.dirname(file), { recursive: true })
+  fs.writeFileSync(file, `${JSON.stringify(config, null, 2)}\n`)
+  return true
+}
+
+export function mcpEntry() {
+  return { command: nodeBin(), args: [MCP_SCRIPT] }
+}
+
+function inDesktop() {
+  try {
+    return !!JSON.parse(fs.readFileSync(desktopConfig(), 'utf8')).mcpServers?.[MCP_NAME]
+  } catch {
+    return false
+  }
+}
+
+function inClaudeCode() {
+  try {
+    return !!JSON.parse(fs.readFileSync(path.join(HOME, '.claude.json'), 'utf8')).mcpServers?.[MCP_NAME]
+  } catch {
+    return false
+  }
+}
+
+function addToClaudeCode() {
+  const claude = loadConfig().claudeBin || which('claude')
+  if (!claude) return console.log(yellow('   Claude Code is not installed: skipped.'))
+  spawnSync(claude, ['mcp', 'remove', '-s', 'user', MCP_NAME], { stdio: 'ignore' })
+  if (run(claude, ['mcp', 'add', '-s', 'user', MCP_NAME, '--', nodeBin(), MCP_SCRIPT])) console.log(green('   ✓ Claude Code: available in every project ("/mcp" lists it)'))
+  else console.log(red('   Claude Code refused it; see above.'))
+}
+
+function addToDesktop() {
+  editDesktopConfig(desktopConfig(), mcpEntry())
+  console.log(green(`   ✓ Claude desktop app: added to ${desktopConfig()}`))
+  console.log('     Quit the Claude app (⌘Q) and open it again to load it.')
+}
+
+async function mcpInstall(rl) {
+  const own = !rl
+  rl ??= prompter()
+  try {
+    const yes = async (q) => !(await rl.question(`${q} ${dim('(Y/n)')} `)).trim().toLowerCase().startsWith('n')
+    if (await yes('   Add it to Claude Code (the command line)?')) addToClaudeCode()
+    if (await yes('   Add it to the Claude desktop app?')) addToDesktop()
+    console.log(`   It needs the server running (npm run status). Try asking Claude: ${bold('"What did I record this week?"')}`)
+  } finally {
+    if (own) rl.close()
+  }
+}
+
+function mcpUninstall() {
+  const claude = loadConfig().claudeBin || which('claude')
+  if (claude && inClaudeCode()) run(claude, ['mcp', 'remove', '-s', 'user', MCP_NAME])
+  if (editDesktopConfig(desktopConfig(), null)) console.log('Removed from the Claude desktop app (quit and reopen it).')
+  console.log('Claude no longer has access to your recordings.')
 }
 
 // ---------- checks ----------
@@ -121,6 +237,8 @@ function checks(cfg) {
     { name: "Plaud's command line", ok: !!which('plaud'), fix: 'npm install -g @plaud-ai/cli', optional: true },
     { name: 'Plaud login', ok: fs.existsSync(path.join(PLAUD_DIR, 'tokens.json')), fix: 'plaud login', optional: true },
     { name: 'Claude Code (for notes)', ok: !!(cfg.claudeBin || which('claude')), fix: 'Install from https://claude.com/claude-code, then run `claude` once and sign in', optional: true },
+    { name: 'Claude can reach recordings: Claude Code', ok: inClaudeCode(), fix: 'npm run mcp:install', optional: true },
+    { name: 'Claude can reach recordings: Claude desktop app', ok: inDesktop(), fix: 'npm run mcp:install', optional: true },
     { name: 'Server running', ok: agentState(SERVER) === 'running', fix: 'npm run setup (or npm run restart)', optional: true },
     { name: 'Plaud sync scheduled', ok: !!agentState(SYNC), fix: 'npm run setup', optional: true },
   ]
@@ -157,7 +275,7 @@ function run(cmd, args, opts = {}) {
 }
 
 async function setup() {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
+  const rl = prompter()
   const ask = async (q, d = '') => (await rl.question(`${q}${d ? dim(` [${d}]`) : ''} `)).trim() || d
   const yes = async (q, d = true) => {
     const a = (await ask(`${q} ${dim(d ? '(Y/n)' : '(y/N)')}`)).toLowerCase()
@@ -231,6 +349,13 @@ async function setup() {
       console.log(green('   ✓ Installed'))
     } else console.log('   Later: npm run setup again, or run it in a window with `npm start`.')
 
+    // 7. Claude, with the recordings
+    console.log(bold('\n7. Let Claude work with your recordings (optional)'))
+    console.log('   Claude Code and the Claude desktop app can then list, search and read your recordings, and rename,')
+    console.log('   correct, transcribe again or rewrite notes when you ask. Private recordings stay out of reach.')
+    if (await yes('   Set that up?', false)) await mcpInstall(rl)
+    else console.log('   Later: npm run mcp:install')
+
     console.log(bold('\nWhere things stand:'))
     printChecks(checks(cfg))
     console.log(`\nOpen ${bold(`http://localhost:${cfg.port}`)} in your browser.`)
@@ -294,8 +419,10 @@ if (isMain) {
     else if (cmd === 'status') status()
     else if (cmd === 'uninstall') uninstall()
     else if (cmd === 'restart') restart()
+    else if (cmd === 'mcp-install') await mcpInstall()
+    else if (cmd === 'mcp-uninstall') mcpUninstall()
     else if (cmd === 'sync') execFileSync(process.execPath, [SYNC_SCRIPT, ...process.argv.slice(3)], { stdio: 'inherit', env: { ...process.env, PLAUD_SYNC_DEST: loadConfig().recordingsDir } })
-    else console.log('Commands: setup, doctor, status, restart, uninstall, sync')
+    else console.log('Commands: setup, doctor, status, restart, uninstall, sync, mcp-install, mcp-uninstall')
   } catch (e) {
     console.error(red(e.message))
     process.exit(1)

@@ -68,6 +68,16 @@ On the web page you can:
 
 The page has its own **Guide** (top right) that explains each of these.
 
+## Claude, with your recordings
+
+An MCP server lets the Claude desktop app and Claude Code work with your recordings when you ask: "What did Sam say about the deadline on Tuesday?", "List every task that's mine from this week's meetings", "Name speaker 2 Priya and write the notes again as an interview", "Write minutes for this morning's call and save them with it". It reaches only your recordings, never private ones, and can't delete anything.
+
+```bash
+npm run mcp:install
+```
+
+Details, the tools, and setting it up by hand: [docs/MCP.md](docs/MCP.md).
+
 ## Where things are
 
 | | |
@@ -91,6 +101,7 @@ npm run doctor      # what's installed and signed in, and how to fix each gap
 npm run status      # are the background jobs running, last log lines
 npm run restart     # restart the server (after an update)
 npm run sync        # one Plaud sync now, in this window
+npm run mcp:install # let Claude (desktop app, Claude Code) work with your recordings
 npm start           # run the server in this window instead of in the background
 npm run uninstall   # stop and remove the background jobs (your files stay)
 npm test            # the tests (no models, no Claude, no Plaud)
@@ -103,12 +114,13 @@ Updating: `git pull && npm run restart`.
 - [docs/SETUP.md](docs/SETUP.md): installing, step by step
 - [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md): each stage of the pipeline, the files, the models
 - [docs/ACCESS.md](docs/ACCESS.md): reading your recordings on the phone and other computers
+- [docs/MCP.md](docs/MCP.md): Claude, with your recordings
 - [docs/PRIVACY.md](docs/PRIVACY.md): what stays on the Mac, what goes where
 - [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md): when something doesn't work
 
 ## Privacy in one paragraph
 
-Audio never leaves your Mac except through the services you already use: Plaud's cloud (where the recorder uploads it) and Dropbox (if your folder is there). Transcription happens entirely on the Mac. Only the **text** of a transcript goes to Anthropic, through Claude Code, when notes are written or you ask Claude something, and never for recordings in the `Private` folder. Turn automatic notes off in Settings if you prefer to choose each time. Details: [docs/PRIVACY.md](docs/PRIVACY.md).
+Audio never leaves your Mac except through the services you already use: Plaud's cloud (where the recorder uploads it) and Dropbox (if your folder is there). Transcription happens entirely on the Mac. Only the **text** of a transcript goes to Anthropic, through Claude Code, when notes are written or you ask Claude something, and never for recordings in the `Private` folder. Turn automatic notes off in Settings if you prefer to choose each time. If you connect Claude through MCP, what it reads in a conversation goes to Anthropic the same way. Details: [docs/PRIVACY.md](docs/PRIVACY.md).
 
 ## Credits
 
